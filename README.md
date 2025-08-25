@@ -24,7 +24,7 @@ The core of this tool lies in its ability to segment time-series data and analyz
 
     $\\text{Average Gradient} = \\frac{\\Delta B}{\\Delta t}$
     
-    where $\\Delta B$ is the change in battery percentage and $\\Delta t$ is the duration of the segment in hours.
+    Where $\\Delta B$ is the change in battery percentage and $\\Delta t$ is the duration of the segment in hours.
 
   * **Predictions**:
 
@@ -56,8 +56,8 @@ This sheet is for logging events you want to correlate with battery usage.
 | `Label`       | A name for the event (e.g., "Gaming," "Charging," "Video Call"). |
 | `Start Date`  | The date the event started in `DD.MM.YYYY` format.                      |
 | `Start Time`  | The time the event started in `HHMM` format.                            |
-| `Duration`    | The duration of the event in minutes.                               |
-| `Color`       | A color for the event's visual overlay (e.g., `#ADD8E6`).         |
+| `Duration [min]`    | The duration of the event in minutes.                               |
+| `Color`       | A color for the event's visual overlay (e.g., `Blue`\\`#ADD8E6`).         |
 
 -----
 
@@ -67,16 +67,17 @@ This sheet is for logging events you want to correlate with battery usage.
 
 This plot shows the raw data with overlaid trend lines and a staircase graph representing the expected battery level based on the average segment gradient.
 
-\!
+![Battery Usage Plot By Segment](images/segment_usage.png)
 
 ### Battery Usage with Event Gradients
 
 This plot shows the battery data with specific event periods highlighted, and a trend line representing the average gradient during each event.
 
-\!
+
+![Battery Usage Plot By Event](images/event_usage.png)
 
 ### Battery Drain Predictions
 
 This plot extends the battery usage graph to show two future predictions: one based on the current usage trend, and one based on the average usage of the last two days. The staircase graphs visualize these predictions step-by-step.
 
-\!
+![Battery Usage Prediction](images/predictions.png)
