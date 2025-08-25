@@ -30,8 +30,7 @@ The core of this tool lies in its ability to segment time-series data and analyz
 
   * **Gradient Calculation**: The average gradient for each segment is calculated using the formula:
 
-    $$
-    $$$$\\text{Average Gradient} = \\frac{\\Delta B}{\\Delta t}
+    $\\text{Average Gradient} = \\frac{\\Delta B}{\\Delta t}
 
     $$
     $$$$where $\\Delta B$ is the change in battery percentage and $\\Delta t$ is the duration of the segment in hours.
