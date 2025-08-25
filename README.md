@@ -2,11 +2,7 @@
 
 This project is a Python-based tool for analyzing and visualizing battery usage data. By processing time-series data from a simple Excel spreadsheet, it automatically identifies key trends, correlates battery drain with specific events, and generates predictive plots to estimate future battery life.
 
-\<br\>
-
 -----
-
-\<br\>
 
 ## Features
 
@@ -16,11 +12,7 @@ This project is a Python-based tool for analyzing and visualizing battery usage 
   * **Battery Life Prediction**: Two distinct predictive models estimate when the battery will drain to 0%, based on both the most recent trend and the average usage over the last two days.
   * **Excel-based Input**: All data is loaded directly from a simple, two-sheet Excel file, making it easy to update and use.
 
-\<br\>
-
 -----
-
-\<br\>
 
 ## Processing Methods
 
@@ -30,21 +22,16 @@ The core of this tool lies in its ability to segment time-series data and analyz
 
   * **Gradient Calculation**: The average gradient for each segment is calculated using the formula:
 
-    $\\text{Average Gradient} = \\frac{\\Delta B}{\\Delta t}
-
-    $$
-    $$$$where $\\Delta B$ is the change in battery percentage and $\\Delta t$ is the duration of the segment in hours.
+    $\\text{Average Gradient} = \\frac{\\Delta B}{\\Delta t}$
+    
+    where $\\Delta B$ is the change in battery percentage and $\\Delta t$ is the duration of the segment in hours.
 
   * **Predictions**:
 
     1.  The **"Current Trend"** prediction uses the average gradient of the most recent segment to project when the battery will hit 0%.
     2.  The **"Last 2-Day Usage"** prediction calculates an average gradient from all draining segments within the last 48 hours to provide a more holistic estimate.
 
-\<br\>
-
 -----
-
-\<br\>
 
 ## Required Excel Format
 
@@ -72,11 +59,7 @@ This sheet is for logging events you want to correlate with battery usage.
 | `Duration`    | The duration of the event in minutes.                               |
 | `Color`       | A color for the event's visual overlay (e.g., `#ADD8E6`).         |
 
-\<br\>
-
 -----
-
-\<br\>
 
 ## Example Visualizations
 
