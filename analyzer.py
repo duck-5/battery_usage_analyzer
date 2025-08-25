@@ -264,28 +264,31 @@ def create_combined_plot(data_points: list, events: list, segments: list, event_
     if pred_gradient_1 < 0:
         time_to_drain_1_hours = -last_value / pred_gradient_1
         drain_time_1 = last_time + timedelta(hours=time_to_drain_1_hours)
+        time_left_1 = timedelta(hours=time_to_drain_1_hours)
+        
         fig.add_trace(go.Scatter(
             x=[last_time, drain_time_1],
             y=[last_value, 0],
             mode='lines',
             line=dict(color=PREDICTION_LINE_COLOR_1, dash='dash', width=2),
             name=f'Current Trend Prediction ({pred_gradient_1:.2f}%/hr)',
-            hovertemplate="<b>Predicted Drain:</b><br>Time: %{x|%d.%m.%Y %H:%M}<extra></extra>"
+            hovertemplate=(f"<b>Current Trend Prediction</b><br>Time to drain: {time_left_1.seconds // 3600}h {time_left_1.seconds % 3600 // 60}m<br>Predicted drain time: {drain_time_1.strftime('%d.%m.%Y %H:%M')}<extra></extra>")
         ), row=3, col=1)
 
     # Prediction 2: Last 2-Day Usage
     if pred_gradient_2 < 0:
         time_to_drain_2_hours = -last_value / pred_gradient_2
         drain_time_2 = last_time + timedelta(hours=time_to_drain_2_hours)
+        time_left_2 = timedelta(hours=time_to_drain_2_hours)
+
         fig.add_trace(go.Scatter(
             x=[last_time, drain_time_2],
             y=[last_value, 0],
             mode='lines',
             line=dict(color=PREDICTION_LINE_COLOR_2, dash='dash', width=2),
             name=f'Last 2-Day Usage Prediction ({pred_gradient_2:.2f}%/hr)',
-            hovertemplate="<b>Predicted Drain:</b><br>Time: %{x|%d.%m.%Y %H:%M}<extra></extra>"
+            hovertemplate=(f"<b>Last 2-Day Usage Prediction</b><br>Time to drain: {time_left_2.seconds // 3600}h {time_left_2.seconds % 3600 // 60}m<br>Predicted drain time: {drain_time_2.strftime('%d.%m.%Y %H:%M')}<extra></extra>")
         ), row=3, col=1)
-
 
     # --- Final Layout Updates ---
     fig.update_layout(
