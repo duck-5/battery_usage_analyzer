@@ -8,7 +8,8 @@ import numpy as np
 PLOTLY_TEMPLATE = "plotly_white"
 BATTERY_LINE_COLOR = "#4682B4"  # SteelBlue
 TREND_LINE_COLOR = "#FFD700"  # Gold
-PREDICTION_LINE_COLOR = "#FF4500"  # OrangeRed
+PREDICTION_LINE_COLOR_1 = "#FF4500"  # OrangeRed
+PREDICTION_LINE_COLOR_2 = "#32CD32"  # LimeGreen
 EVENT_OPACITY = 0.25
 
 # --- Data Structures ---
@@ -134,21 +135,43 @@ def calculate_event_gradients(data_points: list, events: list):
         })
     return event_gradients
 
-# --- Combined Plotting Function ---
-def create_combined_plot(data_points: list, events: list, segments: list, event_gradients: list):
+def calculate_last_2day_usage_gradient(data_points: list):
     """
-    Generates a single figure with two subplots: battery usage summary and event gradients.
+    Calculates the average gradient of usage (negative or zero gradients) over the last 48 hours.
+    """
+    if not data_points or len(data_points) < 2:
+        return 0
+
+    end_time = data_points[-1][0]
+    start_time_period = end_time - timedelta(days=2)
+    
+    # Filter data points for the last 48 hours and for discharging periods
+    usage_points = [p for p in data_points if p[0] >= start_time_period]
+    
+    usage_gradients = []
+    for i in range(len(usage_points) - 1):
+        time_diff_hours = (usage_points[i+1][0] - usage_points[i][0]).total_seconds() / 3600
+        if time_diff_hours > 0:
+            gradient = (usage_points[i+1][1] - usage_points[i][1]) / time_diff_hours
+            if gradient <= 0:  # Only consider negative or zero gradients (usage)
+                usage_gradients.append(gradient)
+
+    return np.mean(usage_gradients) if usage_gradients else 0
+
+# --- Combined Plotting Function ---
+def create_combined_plot(data_points: list, events: list, segments: list, event_gradients: list, pred_gradient_1: float, pred_gradient_2: float):
+    """
+    Generates a single figure with three subplots.
     """
     fig = make_subplots(
-        rows=2, cols=1,
-        row_heights=[0.7, 0.3],
+        rows=3, cols=1,
+        row_heights=[0.35, 0.35, 0.3],
         shared_xaxes=True,
-        vertical_spacing=0.15,
-        subplot_titles=("Device Battery Usage Over Time (Segments)", "Device Battery Usage Over Time (Events)")
+        vertical_spacing=0.1,
+        subplot_titles=("Battery Usage with Segments", "Battery Usage with Event Gradients", "Battery Drain Predictions")
     )
 
     # --- TOP SUBPLOT: Battery Usage Summary (Segments) ---
-    # Add main battery line
     fig.add_trace(go.Scatter(
         x=[dt for dt, value in data_points],
         y=[value for dt, value in data_points],
@@ -159,7 +182,6 @@ def create_combined_plot(data_points: list, events: list, segments: list, event_
         hovertemplate="<b>Time:</b> %{x|%d.%m.%Y %H:%M}<br><b>Level:</b> %{y}%<extra></extra>"
     ), row=1, col=1)
 
-    # Add gradient segments as separate traces for hover labels
     for segment in segments:
         hovertemplate = (f"<b>Trend:</b> {segment['avg_gradient']:.2f}%/hr<br>"
                          f"<b>Variability (std):</b> {segment['variability']:.2f}<extra></extra>")
@@ -173,27 +195,6 @@ def create_combined_plot(data_points: list, events: list, segments: list, event_
             hovertemplate=hovertemplate
         ), row=1, col=1)
 
-    # Add battery drain prediction line
-    if data_points and segments:
-        last_point = data_points[-1]
-        last_time = last_point[0]
-        last_value = last_point[1]
-        last_segment_gradient = segments[-1]['avg_gradient']
-        
-        if last_segment_gradient < 0:
-            time_to_drain_hours = -last_value / last_segment_gradient
-            drain_time = last_time + timedelta(hours=time_to_drain_hours)
-            
-            fig.add_trace(go.Scatter(
-                x=[last_time, drain_time],
-                y=[last_value, 0],
-                mode='lines',
-                line=dict(color=PREDICTION_LINE_COLOR, dash='dash', width=2),
-                name='Prediction to 0%',
-                hovertemplate="<b>Predicted Drain:</b><br>Time: %{x|%d.%m.%Y %H:%M}<extra></extra>"
-            ), row=1, col=1)
-
-    # Add event areas for the top subplot
     for event in events:
         fig.add_vrect(
             x0=event.start_time,
@@ -208,8 +209,7 @@ def create_combined_plot(data_points: list, events: list, segments: list, event_
             row=1, col=1
         )
 
-    # --- BOTTOM SUBPLOT: Battery Usage (Events) ---
-    # Add main battery line to the bottom subplot as well
+    # --- MIDDLE SUBPLOT: Battery Usage (Events) ---
     fig.add_trace(go.Scatter(
         x=[dt for dt, value in data_points],
         y=[value for dt, value in data_points],
@@ -220,7 +220,6 @@ def create_combined_plot(data_points: list, events: list, segments: list, event_
         hovertemplate="<b>Time:</b> %{x|%d.%m.%Y %H:%M}<br><b>Level:</b> %{y}%<extra></extra>"
     ), row=2, col=1)
 
-    # Add event trend lines
     for eg in event_gradients:
         fig.add_trace(go.Scatter(
             x=[eg['start_point'][0], eg['end_point'][0]],
@@ -232,7 +231,6 @@ def create_combined_plot(data_points: list, events: list, segments: list, event_
             hovertemplate=f"<b>Event:</b> {eg['label']}<br><b>Avg Gradient:</b> {eg['gradient']:.2f}%/hr<extra></extra>"
         ), row=2, col=1)
         
-    # Add event areas for the bottom subplot
     for event in events:
         fig.add_vrect(
             x0=event.start_time,
@@ -247,6 +245,48 @@ def create_combined_plot(data_points: list, events: list, segments: list, event_
             row=2, col=1
         )
 
+    # --- BOTTOM SUBPLOT: Predictions ---
+    fig.add_trace(go.Scatter(
+        x=[dt for dt, value in data_points],
+        y=[value for dt, value in data_points],
+        mode='lines+markers',
+        name='Actual Battery Level',
+        line=dict(color=BATTERY_LINE_COLOR, width=2),
+        marker=dict(size=6, color=BATTERY_LINE_COLOR),
+        hovertemplate="<b>Time:</b> %{x|%d.%m.%Y %H:%M}<br><b>Level:</b> %{y}%<extra></extra>"
+    ), row=3, col=1)
+
+    last_point = data_points[-1]
+    last_time = last_point[0]
+    last_value = last_point[1]
+    
+    # Prediction 1: Current Trend
+    if pred_gradient_1 < 0:
+        time_to_drain_1_hours = -last_value / pred_gradient_1
+        drain_time_1 = last_time + timedelta(hours=time_to_drain_1_hours)
+        fig.add_trace(go.Scatter(
+            x=[last_time, drain_time_1],
+            y=[last_value, 0],
+            mode='lines',
+            line=dict(color=PREDICTION_LINE_COLOR_1, dash='dash', width=2),
+            name=f'Current Trend Prediction ({pred_gradient_1:.2f}%/hr)',
+            hovertemplate="<b>Predicted Drain:</b><br>Time: %{x|%d.%m.%Y %H:%M}<extra></extra>"
+        ), row=3, col=1)
+
+    # Prediction 2: Last 2-Day Usage
+    if pred_gradient_2 < 0:
+        time_to_drain_2_hours = -last_value / pred_gradient_2
+        drain_time_2 = last_time + timedelta(hours=time_to_drain_2_hours)
+        fig.add_trace(go.Scatter(
+            x=[last_time, drain_time_2],
+            y=[last_value, 0],
+            mode='lines',
+            line=dict(color=PREDICTION_LINE_COLOR_2, dash='dash', width=2),
+            name=f'Last 2-Day Usage Prediction ({pred_gradient_2:.2f}%/hr)',
+            hovertemplate="<b>Predicted Drain:</b><br>Time: %{x|%d.%m.%Y %H:%M}<extra></extra>"
+        ), row=3, col=1)
+
+
     # --- Final Layout Updates ---
     fig.update_layout(
         title={
@@ -260,9 +300,10 @@ def create_combined_plot(data_points: list, events: list, segments: list, event_
         xaxis_title="Time",
         yaxis_title="Battery Percentage (%)",
         yaxis2_title="Battery Percentage (%)",
+        yaxis3_title="Battery Percentage (%)",
         showlegend=True
     )
-    fig.update_xaxes(title_text="Time", row=2, col=1)
+    fig.update_xaxes(title_text="Time", row=3, col=1)
 
     pio.renderers.default = "browser"
     fig.show()
@@ -310,7 +351,11 @@ def main():
     processed_segments = calculate_segment_metrics(raw_segments)
     event_gradients = calculate_event_gradients(battery_data, events)
     
-    create_combined_plot(battery_data, events, processed_segments, event_gradients)
+    # Calculate gradients for predictions
+    pred_gradient_1 = processed_segments[-1]['avg_gradient'] if processed_segments else 0
+    pred_gradient_2 = calculate_last_2day_usage_gradient(battery_data)
+    
+    create_combined_plot(battery_data, events, processed_segments, event_gradients, pred_gradient_1, pred_gradient_2)
 
 if __name__ == "__main__":
     main()
