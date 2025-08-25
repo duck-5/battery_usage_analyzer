@@ -1,11 +1,11 @@
 from datetime import datetime, timedelta
 
 # --- Constants for Configuration ---
-PLOTLY_TEMPLATE = "plotly_white"
-BATTERY_LINE_COLOR = "#4682B4"  # SteelBlue
-TREND_LINE_COLOR = "#FFD700"  # Gold
-PREDICTION_LINE_COLOR_1 = "#FF4500"  # OrangeRed
-PREDICTION_LINE_COLOR_2 = "#32CD32"  # LimeGreen
+PLOTLY_TEMPLATE = "plotly_dark"
+BATTERY_LINE_COLOR = "#7DDDF8"  # SteelBlue
+TREND_LINE_COLOR = "#FCFFA3"  # Gold
+PREDICTION_LINE_COLOR_1 = "#FFAD90"  # OrangeRed
+PREDICTION_LINE_COLOR_2 = "#84FF84"  # LimeGreen
 EVENT_OPACITY = 0.25
 
 # --- Data Structures ---
