@@ -19,6 +19,8 @@ class Event:
         self.end_time = self.start_time + self.duration
 
 def calculate_percent_duration_of_segment(gradient_percent_by_hours):
+    if gradient_percent_by_hours == 0:
+        return timedelta.max
     delta = timedelta(hours=(1/abs(gradient_percent_by_hours)))
     return delta
 

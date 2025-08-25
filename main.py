@@ -11,12 +11,30 @@ from analyzer.plotting import (
 )
 from analyzer.loader import load_data_from_excel
 import plotly.io as pio
+import tkinter as tk
+from tkinter import filedialog
 
+def get_excel_file_path():
+    """Main function to process data and generate the combined plot."""
+
+    # Open file dialog for Excel file selection
+    root = tk.Tk()
+    root.withdraw()  # Hide the root window
+    excel_file_path = filedialog.askopenfilename(
+        title="Select Battery Usage Excel File",
+        filetypes=[("Excel Files", "*.xlsx *.xls")]
+    )
+    if not excel_file_path:
+        print("No file selected. Exiting.")
+        return
+    return excel_file_path
+    
 def main():
     """Main function to process data and generate the combined plot."""
     
     # Load data from Excel file
-    excel_data = load_data_from_excel(r'battery_usage.xlsx') # CHANGE THIS TO YOUR FILE PATH
+    excel_file_path = get_excel_file_path()
+    excel_data = load_data_from_excel(excel_file_path)
     if not excel_data:
         return # Exit if data loading failed
 
