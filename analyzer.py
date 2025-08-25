@@ -266,13 +266,19 @@ def create_combined_plot(data_points: list, events: list, segments: list, event_
         drain_time_1 = last_time + timedelta(hours=time_to_drain_1_hours)
         time_left_1 = timedelta(hours=time_to_drain_1_hours)
         
+        days_1 = time_left_1.days
+        hours_1 = time_left_1.seconds // 3600
+        minutes_1 = (time_left_1.seconds % 3600) // 60
+
         fig.add_trace(go.Scatter(
             x=[last_time, drain_time_1],
             y=[last_value, 0],
             mode='lines',
             line=dict(color=PREDICTION_LINE_COLOR_1, dash='dash', width=2),
             name=f'Current Trend Prediction ({pred_gradient_1:.2f}%/hr)',
-            hovertemplate=(f"<b>Current Trend Prediction</b><br>Time to drain: {time_left_1.seconds // 3600}h {time_left_1.seconds % 3600 // 60}m<br>Predicted drain time: {drain_time_1.strftime('%d.%m.%Y %H:%M')}<extra></extra>")
+            hovertemplate=(f"<b>Current Trend Prediction</b><br>"
+                           f"Time to drain: {days_1}d {hours_1}h {minutes_1}m<br>"
+                           f"Predicted drain time: {drain_time_1.strftime('%d.%m.%Y %H:%M')}<extra></extra>")
         ), row=3, col=1)
 
     # Prediction 2: Last 2-Day Usage
@@ -280,6 +286,10 @@ def create_combined_plot(data_points: list, events: list, segments: list, event_
         time_to_drain_2_hours = -last_value / pred_gradient_2
         drain_time_2 = last_time + timedelta(hours=time_to_drain_2_hours)
         time_left_2 = timedelta(hours=time_to_drain_2_hours)
+        
+        days_2 = time_left_2.days
+        hours_2 = time_left_2.seconds // 3600
+        minutes_2 = (time_left_2.seconds % 3600) // 60
 
         fig.add_trace(go.Scatter(
             x=[last_time, drain_time_2],
@@ -287,7 +297,9 @@ def create_combined_plot(data_points: list, events: list, segments: list, event_
             mode='lines',
             line=dict(color=PREDICTION_LINE_COLOR_2, dash='dash', width=2),
             name=f'Last 2-Day Usage Prediction ({pred_gradient_2:.2f}%/hr)',
-            hovertemplate=(f"<b>Last 2-Day Usage Prediction</b><br>Time to drain: {time_left_2.seconds // 3600}h {time_left_2.seconds % 3600 // 60}m<br>Predicted drain time: {drain_time_2.strftime('%d.%m.%Y %H:%M')}<extra></extra>")
+            hovertemplate=(f"<b>Last 2-Day Usage Prediction</b><br>"
+                           f"Time to drain: {days_2}d {hours_2}h {minutes_2}m<br>"
+                           f"Predicted drain time: {drain_time_2.strftime('%d.%m.%Y %H:%M')}<extra></extra>")
         ), row=3, col=1)
 
     # --- Final Layout Updates ---
