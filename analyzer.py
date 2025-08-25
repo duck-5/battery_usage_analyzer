@@ -158,20 +158,11 @@ def calculate_last_2day_usage_gradient(data_points: list):
 
     return np.mean(usage_gradients) if usage_gradients else 0
 
-# --- Combined Plotting Function ---
-def create_combined_plot(data_points: list, events: list, segments: list, event_gradients: list, pred_gradient_1: float, pred_gradient_2: float):
-    """
-    Generates a single figure with three subplots.
-    """
-    fig = make_subplots(
-        rows=3, cols=1,
-        row_heights=[0.35, 0.35, 0.3],
-        shared_xaxes=True,
-        vertical_spacing=0.1,
-        subplot_titles=("Battery Usage with Segments", "Battery Usage with Event Gradients", "Battery Drain Predictions")
-    )
-
-    # --- TOP SUBPLOT: Battery Usage Summary (Segments) ---
+# --- Plotting Functions ---
+def create_segment_plot(data_points, segments, events):
+    """Generates the plot for battery usage with segments."""
+    fig = go.Figure()
+    
     fig.add_trace(go.Scatter(
         x=[dt for dt, value in data_points],
         y=[value for dt, value in data_points],
@@ -180,7 +171,7 @@ def create_combined_plot(data_points: list, events: list, segments: list, event_
         line=dict(color=BATTERY_LINE_COLOR, width=2),
         marker=dict(size=6, color=BATTERY_LINE_COLOR),
         hovertemplate="<b>Time:</b> %{x|%d.%m.%Y %H:%M}<br><b>Level:</b> %{y}%<extra></extra>"
-    ), row=1, col=1)
+    ))
 
     for segment in segments:
         hovertemplate = (f"<b>Trend:</b> {segment['avg_gradient']:.2f}%/hr<br>"
@@ -193,7 +184,7 @@ def create_combined_plot(data_points: list, events: list, segments: list, event_
             showlegend=False,
             hoveron="points",
             hovertemplate=hovertemplate
-        ), row=1, col=1)
+        ))
 
     for event in events:
         fig.add_vrect(
@@ -206,19 +197,30 @@ def create_combined_plot(data_points: list, events: list, segments: list, event_
             annotation_text=f"<b>{event.label}</b>",
             annotation_position="top left",
             annotation_font_size=12,
-            row=1, col=1
         )
+    
+    fig.update_layout(
+        title='Battery Usage with Segments',
+        template=PLOTLY_TEMPLATE,
+        xaxis_title="Time",
+        yaxis_title="Battery Percentage (%)",
+        hovermode="x unified"
+    )
+    return fig
 
-    # --- MIDDLE SUBPLOT: Battery Usage (Events) ---
+def create_event_gradient_plot(data_points, event_gradients, events):
+    """Generates the plot for battery usage with event gradients."""
+    fig = go.Figure()
+    
     fig.add_trace(go.Scatter(
         x=[dt for dt, value in data_points],
         y=[value for dt, value in data_points],
         mode='lines+markers',
-        name='Battery Level (Events)',
+        name='Battery Level',
         line=dict(color=BATTERY_LINE_COLOR, width=2),
         marker=dict(size=6, color=BATTERY_LINE_COLOR),
         hovertemplate="<b>Time:</b> %{x|%d.%m.%Y %H:%M}<br><b>Level:</b> %{y}%<extra></extra>"
-    ), row=2, col=1)
+    ))
 
     for eg in event_gradients:
         fig.add_trace(go.Scatter(
@@ -229,7 +231,7 @@ def create_combined_plot(data_points: list, events: list, segments: list, event_
             name=f"Trend for {eg['label']}",
             hoveron="points",
             hovertemplate=f"<b>Event:</b> {eg['label']}<br><b>Avg Gradient:</b> {eg['gradient']:.2f}%/hr<extra></extra>"
-        ), row=2, col=1)
+        ))
         
     for event in events:
         fig.add_vrect(
@@ -242,10 +244,21 @@ def create_combined_plot(data_points: list, events: list, segments: list, event_
             annotation_text=f"<b>{event.label}</b>",
             annotation_position="top left",
             annotation_font_size=12,
-            row=2, col=1
         )
+    
+    fig.update_layout(
+        title='Battery Usage with Event Gradients',
+        template=PLOTLY_TEMPLATE,
+        xaxis_title="Time",
+        yaxis_title="Battery Percentage (%)",
+        hovermode="x unified"
+    )
+    return fig
 
-    # --- BOTTOM SUBPLOT: Predictions ---
+def create_prediction_plot(data_points, pred_gradient_1, pred_gradient_2):
+    """Generates the prediction plot."""
+    fig = go.Figure()
+    
     fig.add_trace(go.Scatter(
         x=[dt for dt, value in data_points],
         y=[value for dt, value in data_points],
@@ -254,13 +267,12 @@ def create_combined_plot(data_points: list, events: list, segments: list, event_
         line=dict(color=BATTERY_LINE_COLOR, width=2),
         marker=dict(size=6, color=BATTERY_LINE_COLOR),
         hovertemplate="<b>Time:</b> %{x|%d.%m.%Y %H:%M}<br><b>Level:</b> %{y}%<extra></extra>"
-    ), row=3, col=1)
+    ))
 
     last_point = data_points[-1]
     last_time = last_point[0]
     last_value = last_point[1]
     
-    # Prediction 1: Current Trend
     if pred_gradient_1 < 0:
         time_to_drain_1_hours = -last_value / pred_gradient_1
         drain_time_1 = last_time + timedelta(hours=time_to_drain_1_hours)
@@ -279,9 +291,8 @@ def create_combined_plot(data_points: list, events: list, segments: list, event_
             hovertemplate=(f"<b>Current Trend Prediction</b><br>"
                            f"Time to drain: {days_1}d {hours_1}h {minutes_1}m<br>"
                            f"Predicted drain time: {drain_time_1.strftime('%d.%m.%Y %H:%M')}<extra></extra>")
-        ), row=3, col=1)
+        ))
 
-    # Prediction 2: Last 2-Day Usage
     if pred_gradient_2 < 0:
         time_to_drain_2_hours = -last_value / pred_gradient_2
         drain_time_2 = last_time + timedelta(hours=time_to_drain_2_hours)
@@ -300,28 +311,16 @@ def create_combined_plot(data_points: list, events: list, segments: list, event_
             hovertemplate=(f"<b>Last 2-Day Usage Prediction</b><br>"
                            f"Time to drain: {days_2}d {hours_2}h {minutes_2}m<br>"
                            f"Predicted drain time: {drain_time_2.strftime('%d.%m.%Y %H:%M')}<extra></extra>")
-        ), row=3, col=1)
-
-    # --- Final Layout Updates ---
+        ))
+    
     fig.update_layout(
-        title={
-            'text': "Comprehensive Battery Usage Report",
-            'x': 0.5,
-            'xanchor': 'center',
-            'font': dict(size=20)
-        },
+        title='Battery Drain Predictions',
         template=PLOTLY_TEMPLATE,
-        hovermode="x unified",
         xaxis_title="Time",
         yaxis_title="Battery Percentage (%)",
-        yaxis2_title="Battery Percentage (%)",
-        yaxis3_title="Battery Percentage (%)",
-        showlegend=True
+        hovermode="x unified"
     )
-    fig.update_xaxes(title_text="Time", row=3, col=1)
-
-    pio.renderers.default = "browser"
-    fig.show()
+    return fig
 
 # --- Main Execution ---
 def main():
@@ -370,7 +369,16 @@ def main():
     pred_gradient_1 = processed_segments[-1]['avg_gradient'] if processed_segments else 0
     pred_gradient_2 = calculate_last_2day_usage_gradient(battery_data)
     
-    create_combined_plot(battery_data, events, processed_segments, event_gradients, pred_gradient_1, pred_gradient_2)
+    # Generate individual figures
+    fig_segments = create_segment_plot(battery_data, processed_segments, events)
+    fig_events = create_event_gradient_plot(battery_data, event_gradients, events)
+    fig_predictions = create_prediction_plot(battery_data, pred_gradient_1, pred_gradient_2)
+
+    # Show plots in separate tabs
+    pio.renderers.default = "browser"
+    fig_segments.show()
+    fig_events.show()
+    fig_predictions.show()
 
 if __name__ == "__main__":
     main()
