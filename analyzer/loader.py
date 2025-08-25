@@ -1,5 +1,5 @@
 import pandas as pd
-from utils import Event
+from analyzer.utils import Event
 
 def load_data_from_excel(file_path: str):
     """

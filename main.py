@@ -1,15 +1,15 @@
-from data_processing import (
+from analyzer.data_processing import (
     calculate_segments,
     calculate_segment_metrics,
     calculate_event_gradients,
     calculate_last_2day_usage_gradient
 )
-from plotting import (
+from analyzer.plotting import (
     create_segment_plot,
     create_event_gradient_plot,
     create_prediction_plot
 )
-from loader import load_data_from_excel
+from analyzer.loader import load_data_from_excel
 import plotly.io as pio
 
 def main():

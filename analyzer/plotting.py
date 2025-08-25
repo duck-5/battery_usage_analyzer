@@ -1,8 +1,7 @@
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from datetime import timedelta
-from utils import PLOTLY_TEMPLATE, BATTERY_LINE_COLOR, TREND_LINE_COLOR, PREDICTION_LINE_COLOR_1, PREDICTION_LINE_COLOR_2, EVENT_OPACITY
-import utils
+from analyzer.utils import PLOTLY_TEMPLATE, BATTERY_LINE_COLOR, TREND_LINE_COLOR, PREDICTION_LINE_COLOR_1, PREDICTION_LINE_COLOR_2, EVENT_OPACITY, create_staircase_values
 
 def create_segment_plot(data_points, segments, events):
     """Generates the plot for battery usage with segments and a table of gradients."""
@@ -34,7 +33,7 @@ def create_segment_plot(data_points, segments, events):
             hovertemplate=hovertemplate
         ))
 
-        staircase_x, staircase_y = utils.create_staircase_values(segment["start"],segment["end"],  segment["avg_gradient"]) 
+        staircase_x, staircase_y = create_staircase_values(segment["start"],segment["end"],  segment["avg_gradient"]) 
             
         fig.add_trace(go.Scatter(
             x=staircase_x,
@@ -100,7 +99,7 @@ def create_event_gradient_plot(data_points, event_gradients, events):
         ))
 
         # --- Staircase Graph for Events ---
-        staircase_x_events, staircase_y_events = utils.create_staircase_values(eg["start_point"],eg["end_point"],  eg["gradient"]) 
+        staircase_x_events, staircase_y_events = create_staircase_values(eg["start_point"],eg["end_point"],  eg["gradient"]) 
             
         fig.add_trace(go.Scatter(
             x=staircase_x_events,
@@ -166,7 +165,7 @@ def create_prediction_plot(data_points, pred_gradient_1, pred_gradient_2):
                            f"Predicted drain time: {drain_time_1.strftime('%d.%m.%Y %H:%M')}<extra></extra>")
         ))
         
-        staircase_x_pred1, staircase_y_pred1 = utils.create_staircase_values(last_point, (drain_time_1, 0), pred_gradient_1) 
+        staircase_x_pred1, staircase_y_pred1 = create_staircase_values(last_point, (drain_time_1, 0), pred_gradient_1) 
            
         fig.add_trace(go.Scatter(
             x=staircase_x_pred1,
@@ -192,7 +191,7 @@ def create_prediction_plot(data_points, pred_gradient_1, pred_gradient_2):
                            f"Predicted drain time: {drain_time_2.strftime('%d.%m.%Y %H:%M')}<extra></extra>")
         ))
 
-        staircase_x_pred2, staircase_y_pred2 = utils.create_staircase_values(last_point, (drain_time_2, 0), pred_gradient_2) 
+        staircase_x_pred2, staircase_y_pred2 = create_staircase_values(last_point, (drain_time_2, 0), pred_gradient_2) 
         fig.add_trace(go.Scatter(
             x=staircase_x_pred2,
             y=staircase_y_pred2,
