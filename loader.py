@@ -16,7 +16,7 @@ def load_data_from_excel(file_path: str):
         df_data = pd.read_excel(file_path, sheet_name='Data')
         
         # Fill forward empty date values
-        df_data['Date'].fillna(method='ffill', inplace=True)
+        df_data['Date'] = df_data['Date'].ffill()
         
         # Combine Date and Time into a single datetime object
         df_data['datetime'] = pd.to_datetime(df_data['Date'].astype(str) + ' ' + df_data['Time'].astype(str), format='%Y-%m-%d %H:%M:%S')
