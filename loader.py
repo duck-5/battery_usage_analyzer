@@ -20,8 +20,7 @@ def load_data_from_excel(file_path: str):
         
         # Combine Date and Time into a single datetime object
         df_data['datetime'] = pd.to_datetime(df_data['Date'].astype(str) + ' ' + df_data['Time'].astype(str), format='%Y-%m-%d %H:%M:%S')
-        print(df_data["datetime"])
-        print("fgf")
+
         # Create list of tuples for battery data
         battery_data = list(zip(df_data['datetime'], df_data['Battery']))
 

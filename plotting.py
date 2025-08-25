@@ -16,15 +16,16 @@ def create_segment_plot(data_points, segments, events):
         hovertemplate="<b>Time:</b> %{x|%d.%m.%Y %H:%M}<br><b>Level:</b> %{y}%<extra></extra>"
     ))
 
-    for segment in segments:
+    for segment_index, segment in enumerate(segments):
         hovertemplate = (f"<b>Trend:</b> {segment['avg_gradient']:.2f}%/hr<br>"
                          f"<b>Variability (std):</b> {segment['variability']:.2f}<extra></extra>")
         fig.add_trace(go.Scatter(
             x=[segment['start'][0], segment['end'][0]],
             y=[segment['start'][1], segment['end'][1]],
+            name=f'Segment {segment_index} Trend: {segment["avg_gradient"]:.2f}%/hr',
             mode='lines',
             line=dict(color=TREND_LINE_COLOR, dash='dot', width=2),
-            showlegend=False,
+            showlegend=True,
             hoveron="points",
             hovertemplate=hovertemplate
         ))
