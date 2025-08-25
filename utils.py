@@ -14,6 +14,6 @@ class Event:
     def __init__(self, label: str, color: str, start_time: str, duration_minutes: int):
         self.label = label
         self.color = color
-        self.start_time = datetime.strptime(start_time, "%d.%m.%Y %H%M")
+        self.start_time = start_time
         self.duration = timedelta(minutes=duration_minutes)
         self.end_time = self.start_time + self.duration

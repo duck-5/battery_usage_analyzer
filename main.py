@@ -1,5 +1,4 @@
 from data_processing import (
-    parse_battery_data,
     calculate_segments,
     calculate_segment_metrics,
     calculate_event_gradients,
@@ -10,47 +9,25 @@ from plotting import (
     create_event_gradient_plot,
     create_prediction_plot
 )
-from utils import Event
+from loader import load_data_from_excel
 import plotly.io as pio
 
 def main():
     """Main function to process data and generate the combined plot."""
-    raw_data = """
-    24.8.2025 1007 47
-    24.8.2025 1211 43
-    24.8.2025 1424 40
-    24.8.2025 1510 39
-    24.8.2025 1558 36
-    24.8.2025 1613 35
-    24.8.2025 1746 33
-    24.8.2025 1803 32
-    24.8.2025 1829 31
-    24.8.2025 1841 30
-    24.8.2025 1906 29
-    24.8.2025 1910 28
-    24.8.2025 1930 27
-    24.8.2025 2326 19
-    25.8.2025 0109 54
-    25.8.2025 0945 43
-    25.8.2025 1014 42
-    25.8.2025 1053 41
-    25.8.2025 1145 40
-    25.8.2025 1213 38
-    25.8.2025 1333 37
-    25.8.2025 1344 37
-    25.8.2025 1353 36
-    25.8.2025 1442 35
-    25.8.2025 1504 35
-    """
     
-    events = [
-        Event(label="Workout", color="blue", start_time="24.8.2025 1746", duration_minutes=17),
-        Event(label="Charge", color="green", start_time="25.8.2025 0010", duration_minutes=40),
-        Event(label="Sleep", color="purple", start_time="25.8.2025 0150", duration_minutes=8*60+19),
-    ]
+    # Load data from Excel file
+    excel_data = load_data_from_excel(r'battery_usage.xlsx') # CHANGE THIS TO YOUR FILE PATH
+    if not excel_data:
+        return # Exit if data loading failed
 
+    battery_data = excel_data['battery_data']
+    events = excel_data['events_data']
+    
+    if not battery_data:
+        print("No battery data found to process.")
+        return
+        
     # Process data
-    battery_data = parse_battery_data(raw_data)
     raw_segments = calculate_segments(battery_data)
     processed_segments = calculate_segment_metrics(raw_segments)
     event_gradients = calculate_event_gradients(battery_data, events)
